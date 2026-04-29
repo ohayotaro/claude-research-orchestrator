@@ -31,6 +31,28 @@ claude
 
 `/init-research` will ask you (in Japanese) about the research domain, theme, RQ, paper output language, paper format (Markdown+BibTeX or LaTeX), and writes those into `CLAUDE.md` Zone B and `pyproject.toml`.
 
+### Clone with a project-specific name (recommended)
+
+研究プロジェクトごとに別ディレクトリで使い、テンプレ起源の `origin` を自分の repo に張り替えるパターン:
+
+```bash
+git clone https://github.com/ohayotaro/claude-research-orchestrator.git my-research-project
+cd my-research-project
+
+# Detach from the template's origin
+git remote remove origin
+
+# Point to your own research repo (create it on GitHub first, then):
+# git remote add origin https://github.com/<you>/my-research-project.git
+
+bash scripts/setup.sh
+claude
+# Inside Claude:
+/init-research
+```
+
+これでテンプレ本体（このリポジトリ）と個別の研究プロジェクトの履歴が混ざらず、テンプレ更新は `scripts/update.sh --source <template-path>` 経由で取り込めます。
+
 ## Skills (the research pipeline)
 
 Run them in order, or jump in at any phase:

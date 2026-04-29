@@ -41,6 +41,14 @@ Before writing code, draft the structure:
 Place the main script at `src/experiments/<short-descriptive-name>.py`. Conventions:
 
 - **Top-of-file docstring** linking back to the hypothesis and methodology section.
+- **Path bootstrap** (3 lines, before any project import) so that `src/` becomes an import root without needing `PYTHONPATH`:
+  ```python
+  import sys
+  from pathlib import Path
+  sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+  from utils.repro import set_seed, write_metadata, make_run_id
+  ```
+  This is required because the project is `package = false` under uv (see `pyproject.toml`); `src/` is not auto-installed.
 - **Argparse** for `--seed`, `--output-dir`, plus methodology-specific args.
 - **Single `main()`** function that returns `0` on success.
 - **Reproducibility helpers** from `src/utils/repro.py` (create it if missing) — must:

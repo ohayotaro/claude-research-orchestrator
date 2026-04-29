@@ -23,6 +23,14 @@ dev = [
     "ipykernel>=6.29",
 ]
 
+# uv treats this project as a virtual environment for dependencies only,
+# not as a buildable / installable Python package. Research code lives in
+# src/{experiments,analysis,utils}/ and is imported via PYTHONPATH=src
+# (configured for tests below; experiment scripts get it via a small
+# bootstrap in src/utils/repro.py).
+[tool.uv]
+package = false
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -32,13 +40,10 @@ select = ["E", "F", "I", "N", "B", "UP", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 addopts = "-v --strict-markers"
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
