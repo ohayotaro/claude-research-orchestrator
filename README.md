@@ -53,6 +53,37 @@ claude
 
 これでテンプレ本体（このリポジトリ）と個別の研究プロジェクトの履歴が混ざらず、テンプレ更新は `scripts/update.sh --source <template-path>` 経由で取り込めます。
 
+### Pulling template updates into an existing research project
+
+このテンプレ（`claude-research-orchestrator`）に修正・改善が入ったとき、すでに走っている研究プロジェクトにそれを取り込む手順:
+
+```bash
+# 1. Get the latest template into a sibling directory (first time only)
+git clone https://github.com/ohayotaro/claude-research-orchestrator.git ../template
+
+# Subsequent updates: just pull
+git -C ../template pull
+
+# 2. Inside your research project, overlay the template
+cd ~/path/to/my-research-project
+bash scripts/update.sh --source ../template
+```
+
+`scripts/update.sh` が:
+- `CLAUDE.md` の **Zone B（プロジェクト固有設定）を自動でバックアップ・復元**します。
+- `.claude/`, `.codex/`, `.gemini/`, `scripts/` を `rsync --delete` で上書きします（テンプレ側で消えたファイルはローカルからも消えます）。
+- バックアップは `.claude/logs/update-backup-<timestamp>/` に残るので、何かおかしければ参照可能。
+
+更新対象は **テンプレ層のみ**（agents / skills / hooks / rules / configs / scripts）。`docs/`, `src/`, `data/`, `notebooks/`, `tests/`, `pyproject.toml` の依存などプロジェクト固有のファイルは触りません。
+
+更新後は念のため:
+
+```bash
+bash scripts/setup.sh        # 依存に変更があれば反映
+git status                    # 何が変わったか確認
+git add -A && git commit -m "Sync template @ <commit-sha>"
+```
+
 ## Skills (the research pipeline)
 
 Run them in order, or jump in at any phase:
