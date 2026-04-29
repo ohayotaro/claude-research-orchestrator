@@ -1,0 +1,17 @@
+{
+  "_comment": "Written by /init-research. paper-writer reads this to decide format.",
+  "paper_format": "markdown_bibtex",
+  "target_venue": null,
+  "templates": {
+    "markdown_bibtex": {
+      "main_path": "docs/paper/draft.md",
+      "bib_path": "docs/references.bib",
+      "front_matter": true
+    },
+    "latex": {
+      "main_path": "docs/paper/main.tex",
+      "bib_path": "docs/references.bib",
+      "preamble_path": "docs/paper/_template/preamble.tex"
+    }
+  }
+}

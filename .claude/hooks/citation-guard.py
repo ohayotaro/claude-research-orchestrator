@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""PreToolUse hook on Write/Edit/MultiEdit targeting docs/.
+
+Scans the new content for sentences that look like factual claims but lack a
+[@citekey] citation. Warns the user; does not block.
+
+Heuristic, not perfect — false positives are tolerated. The point is to nudge
+the author to cite, not to enforce automatically.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+
+# A claim sentence is: declarative, > 8 words, contains a "claim verb",
+# does NOT already contain [@something] or \cite{...} or "we" / "our" (which
+# we interpret as the author's own contribution, not requiring a citation).
+CLAIM_VERBS = re.compile(
+    r"\b(showed|shows|demonstrated|demonstrates|found|finds|observed|observes|"
+    r"argued|argues|reported|reports|established|establishes|proved|proves|"
+    r"confirmed|confirms|revealed|reveals|indicates|suggests|implies|implied|"
+    r"is well known|well-known|are known|prior work|previous work|previously)\b",
+    re.IGNORECASE,
+)
+HAS_CITE = re.compile(r"\[@[a-zA-Z][\w\-]*\]|\\cite[pt]?\{[^}]+\}")
+SELF = re.compile(r"\b(we|our|this paper|in this work)\b", re.IGNORECASE)
+SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
+
+
+def is_doc_path(path: str) -> bool:
+    if not path:
+        return False
+    return path.startswith("docs/") and (
+        path.endswith(".md") or path.endswith(".tex")
+    )
+
+
+def extract_new_content(payload: dict) -> str:
+    tool_name = payload.get("tool_name", "")
+    inp = payload.get("tool_input", {})
+    if tool_name == "Write":
+        return inp.get("content", "") or ""
+    if tool_name == "Edit":
+        return inp.get("new_string", "") or ""
+    if tool_name == "MultiEdit":
+        edits = inp.get("edits", [])
+        return "\n".join(e.get("new_string", "") for e in edits)
+    return ""
+
+
+def find_uncited_claims(text: str) -> list[str]:
+    findings: list[str] = []
+    # Strip code fences to avoid false positives in code blocks.
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    for sent in SENT_SPLIT.split(text):
+        sent = sent.strip()
+        if len(sent.split()) < 8:
+            continue
+        if HAS_CITE.search(sent):
+            continue
+        if SELF.search(sent):
+            continue
+        if not CLAIM_VERBS.search(sent):
+            continue
+        findings.append(sent[:200])
+    return findings
+
+
+def main() -> int:
+    payload = json.loads(sys.stdin.read() or "{}")
+    inp = payload.get("tool_input", {})
+    path = inp.get("file_path", "")
+    if not is_doc_path(path):
+        return 0
+    content = extract_new_content(payload)
+    if not content:
+        return 0
+    findings = find_uncited_claims(content)
+    if not findings:
+        return 0
+    lines = [f"⚠️ 引用が見つからない可能性のある主張 ({path}):"]
+    for f in findings[:5]:
+        lines.append(f"  • {f}")
+    if len(findings) > 5:
+        lines.append(f"  …他 {len(findings) - 5} 件")
+    lines.append("該当箇所に [@citekey] を追記するか、自分の貢献として we/our 文に書き換えてください。")
+    print("\n".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

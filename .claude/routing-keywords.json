@@ -1,0 +1,52 @@
+{
+  "literature-reviewer": [
+    "literature", "lit review", "prior work", "related work", "survey",
+    "find papers", "papers on", "PDF", "preprint", "arXiv", "citation",
+    "先行研究", "論文", "サーベイ", "引用"
+  ],
+  "gemini-explore": [
+    "figure", "image", "chart", "screenshot", "video", "audio",
+    "transcribe", "extract from PDF", "describe image",
+    "図", "画像", "動画", "音声", "スクショ"
+  ],
+  "hypothesis-generator": [
+    "hypothesis", "hypotheses", "idea", "what if", "novel approach",
+    "research gap", "RQ", "research question",
+    "仮説", "新しいアイデア", "ギャップ"
+  ],
+  "methodology-designer": [
+    "experiment design", "sample size", "power analysis", "statistical test",
+    "pre-registration", "study design", "control group",
+    "実験設計", "サンプルサイズ", "検出力", "事前登録"
+  ],
+  "experiment-runner": [
+    "implement", "script", "run", "execute", "code this up", "Python",
+    "uv run", "training run",
+    "実装", "実行", "スクリプト"
+  ],
+  "data-analyst": [
+    "analyze", "analysis", "p-value", "effect size", "confidence interval",
+    "statistics", "plot", "figure", "chart", "regression",
+    "解析", "統計", "効果量", "信頼区間", "プロット"
+  ],
+  "discussant": [
+    "discuss", "discussion", "implications", "limitations", "future work",
+    "interpret", "mechanism",
+    "考察", "示唆", "限界", "今後の課題"
+  ],
+  "paper-writer": [
+    "paper", "draft", "introduction", "abstract", "IMRaD", "manuscript",
+    "write up", "compile draft",
+    "論文", "ドラフト", "原稿", "アブストラクト"
+  ],
+  "peer-reviewer": [
+    "review", "critique", "find flaws", "rebuttal", "reviewer comments",
+    "strict review",
+    "レビュー", "査読", "批判"
+  ],
+  "codex-debugger": [
+    "error", "exception", "stacktrace", "traceback", "doesn't work",
+    "debug", "broken", "fails",
+    "エラー", "例外", "デバッグ"
+  ]
+}
