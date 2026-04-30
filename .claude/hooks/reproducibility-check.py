@@ -53,23 +53,24 @@ def main() -> int:
 
     if not md_path.exists():
         print(
-            f"⛔ 再現性違反: {run_dir}/ に出力ファイルがあるのに metadata.json が無い。\n"
-            "   experiment-runner は metadata.json を最初に書く契約です。"
-            f" `{run_dir}` を一度クリアして src/utils/repro.py の write_metadata を経由して下さい。"
+            f"[reproducibility-check] {run_dir}/ に出力ファイルがあるにもかかわらず "
+            "metadata.json が存在しません。experiment-runner は metadata.json を"
+            f"最初に書く契約です。`{run_dir}` を一度クリアし、"
+            "src/utils/repro.py の write_metadata を経由して再実行してください。"
         )
         return 0
 
     try:
         md = json.loads(md_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        print(f"⛔ 再現性違反: {md_path} が壊れています（JSON parse error）。")
+        print(f"[reproducibility-check] {md_path} の JSON parse に失敗しました。")
         return 0
     missing = REQUIRED_KEYS - md.keys()
     if missing:
         print(
-            f"⚠️ 再現性メタ不足 ({md_path}): "
+            f"[reproducibility-check] 再現性メタが不足しています ({md_path}): "
             f"{', '.join(sorted(missing))} が欠落しています。"
-            " src/utils/repro.write_metadata を使うと自動で揃います。"
+            " src/utils/repro.write_metadata を使うと自動的に揃います。"
         )
     return 0
 

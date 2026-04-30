@@ -80,22 +80,26 @@ def main() -> int:
     if gemini_hits:
         if status["gemini_available"]:
             msgs.append(
-                f"🔍 Gemini delegation を推奨（検出: {', '.join(set(gemini_hits[:3]))}）"
+                "[hint] Gemini への delegation を推奨します"
+                f"（検出: {', '.join(set(gemini_hits[:3]))}）。"
             )
         else:
             msgs.append(
-                f"⚠️ Gemini が必要そう（検出: {', '.join(set(gemini_hits[:3]))}）"
-                "が、gemini CLI が見つかりません。Claude WebFetch にフォールバックします。"
+                "[hint] Gemini が必要と思われますが"
+                f"（検出: {', '.join(set(gemini_hits[:3]))}）、"
+                "gemini CLI が見つかりません。Claude WebFetch にフォールバックします。"
             )
     if codex_hits:
         if status["codex_available"]:
             msgs.append(
-                f"🧠 Codex delegation を推奨（検出: {', '.join(set(codex_hits[:3]))}）"
+                "[hint] Codex への delegation を推奨します"
+                f"（検出: {', '.join(set(codex_hits[:3]))}）。"
             )
         else:
             msgs.append(
-                f"⚠️ Codex が必要そう（検出: {', '.join(set(codex_hits[:3]))}）"
-                "が、codex CLI が見つかりません。Claude subagent にフォールバックします。"
+                "[hint] Codex が必要と思われますが"
+                f"（検出: {', '.join(set(codex_hits[:3]))}）、"
+                "codex CLI が見つかりません。Claude subagent にフォールバックします。"
             )
 
     if msgs:

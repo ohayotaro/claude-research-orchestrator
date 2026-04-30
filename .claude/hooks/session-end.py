@@ -25,7 +25,8 @@ def main() -> int:
 
     if reason == "logout":
         print(
-            "📒 セッションを終えます。永続化が必要なら次回開始前に `/checkpoint` を実行してください。"
+            "[session-end] セッションを終了します。"
+            "進捗の永続化が必要な場合は、次回開始前に `/checkpoint` を実行してください。"
         )
     return 0
 

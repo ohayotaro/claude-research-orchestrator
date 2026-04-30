@@ -37,7 +37,8 @@ def main() -> int:
 
     last_lines = "\n".join(combined.strip().splitlines()[-6:])
     print(
-        "🩺 Python 実行が失敗しました。`codex-debugger` に root-cause 解析を依頼することを推奨。\n"
+        "[error-to-codex] Python 実行が失敗しました。"
+        "`codex-debugger` に root-cause 解析を依頼することを推奨します。\n"
         f"末尾抜粋:\n{last_lines}"
     )
     return 0

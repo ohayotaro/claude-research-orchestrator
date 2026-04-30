@@ -81,11 +81,11 @@ def main() -> int:
     findings = find_uncited_claims(content)
     if not findings:
         return 0
-    lines = [f"⚠️ 引用が見つからない可能性のある主張 ({path}):"]
+    lines = [f"[citation-guard] 引用が見つからない可能性のある主張があります ({path}):"]
     for f in findings[:5]:
-        lines.append(f"  • {f}")
+        lines.append(f"  - {f}")
     if len(findings) > 5:
-        lines.append(f"  …他 {len(findings) - 5} 件")
+        lines.append(f"  ...他 {len(findings) - 5} 件")
     lines.append("該当箇所に [@citekey] を追記するか、自分の貢献として we/our 文に書き換えてください。")
     print("\n".join(lines))
     return 0

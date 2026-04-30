@@ -31,7 +31,7 @@ There is exactly one Japanese-language surface in this repository: **the chat be
 
 ## Boundary cases
 
-- **Hook code with user-facing strings.** Python source is English; only the literal user-facing string is Japanese. Example: `print("⚠️ 引用が見つかりません: " + claim_text)` — variable names and surrounding code stay English.
+- **Hook code with user-facing strings.** Python source is English; only the literal user-facing string is Japanese. Example: `print("[citation-guard] 引用が見つかりません: " + claim_text)` — variable names and surrounding code stay English. Avoid emojis in user-facing strings; prefix with a bracketed tag like `[hook-name]` or `[hint]` instead.
 - **User free-text input.** When the user types a research theme or RQ in Japanese, store it verbatim in `CLAUDE.md` Zone B. Agents translate to English when they materialize content under `docs/research/`.
 - **When unsure, choose English.** Keep the rule simple.
 

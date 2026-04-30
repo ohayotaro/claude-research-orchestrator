@@ -65,11 +65,11 @@ def main() -> int:
 
     lines: list[str] = []
     if agent_hits:
-        lines.append("💡 推奨エージェント:")
+        lines.append("[hint] 推奨エージェント:")
         for agent, kw in agent_hits[:3]:
             lines.append(f"  - {agent}（キーワード: {kw}）")
     if skill_hits:
-        lines.append("✨ ショートカット skill:")
+        lines.append("[hint] ショートカット skill:")
         for skill, kw in skill_hits[:3]:
             lines.append(f"  - {skill}（キーワード: {kw}）")
     print("\n".join(lines))

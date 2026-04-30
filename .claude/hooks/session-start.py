@@ -42,7 +42,8 @@ def main() -> int:
     status = b.get("status", "uninitialized")
     if status == "uninitialized":
         print(
-            "📚 研究プロジェクト未初期化です。最初に `/init-research` を実行してください。"
+            "[session-start] 研究プロジェクトは未初期化です。"
+            "最初に `/init-research` を実行してください。"
         )
         return 0
 
@@ -53,7 +54,7 @@ def main() -> int:
     last_run = c.get("last_run_id", "null")
 
     print(
-        f"📚 研究プロジェクト読み込み完了\n"
+        "[session-start] 研究プロジェクトを読み込みました。\n"
         f"  テーマ: {theme}\n"
         f"  RQ: {rq}\n"
         f"  現在のフェーズ: {phase}（最終 run_id: {last_run}）\n"
