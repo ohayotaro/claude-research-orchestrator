@@ -25,15 +25,27 @@ def load_routing_table() -> dict[str, list[str]]:
         return {}
 
 
-def find_matches(prompt: str, table: dict[str, list[str]]) -> list[tuple[str, str]]:
-    lowered = prompt.lower()
-    hits: list[tuple[str, str]] = []
-    for agent, keywords in table.items():
+def _scan(prompt_lower: str, mapping: dict[str, list[str]]) -> list[tuple[str, str]]:
+    out: list[tuple[str, str]] = []
+    for name, keywords in mapping.items():
+        if name.startswith("_") or not isinstance(keywords, list):
+            continue
         for kw in keywords:
-            if kw.lower() in lowered:
-                hits.append((agent, kw))
+            if isinstance(kw, str) and kw.lower() in prompt_lower:
+                out.append((name, kw))
                 break
-    return hits
+    return out
+
+
+def find_agent_matches(prompt: str, table: dict) -> list[tuple[str, str]]:
+    return _scan(prompt.lower(), table)
+
+
+def find_skill_matches(prompt: str, table: dict) -> list[tuple[str, str]]:
+    skill_hints = table.get("_skill_hints", {})
+    if not isinstance(skill_hints, dict):
+        return []
+    return _scan(prompt.lower(), skill_hints)
 
 
 def main() -> int:
@@ -46,14 +58,20 @@ def main() -> int:
     if not table:
         return 0
 
-    hits = find_matches(prompt, table)
-    if not hits:
+    agent_hits = find_agent_matches(prompt, table)
+    skill_hits = find_skill_matches(prompt, table)
+    if not agent_hits and not skill_hits:
         return 0
 
-    # User-facing hint (Japanese).
-    lines = ["💡 推奨エージェント:"]
-    for agent, kw in hits[:3]:
-        lines.append(f"  - {agent}（キーワード: {kw}）")
+    lines: list[str] = []
+    if agent_hits:
+        lines.append("💡 推奨エージェント:")
+        for agent, kw in agent_hits[:3]:
+            lines.append(f"  - {agent}（キーワード: {kw}）")
+    if skill_hits:
+        lines.append("✨ ショートカット skill:")
+        for skill, kw in skill_hits[:3]:
+            lines.append(f"  - {skill}（キーワード: {kw}）")
     print("\n".join(lines))
     return 0
 

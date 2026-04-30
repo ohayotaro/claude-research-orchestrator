@@ -48,5 +48,27 @@
     "error", "exception", "stacktrace", "traceback", "doesn't work",
     "debug", "broken", "fails",
     "エラー", "例外", "デバッグ"
-  ]
+  ],
+  "_skill_hints": {
+    "_comment": "Suggest these skills (not agents) for ad-hoc requests outside the pipeline.",
+    "/ask-gemini": [
+      "quick search", "1本だけ", "1つだけ", "ちょっと調べて",
+      "this PDF", "this figure", "describe image",
+      "この PDF", "この図", "この画像"
+    ],
+    "/ask-codex": [
+      "is this correct", "sanity check", "spot the flaw",
+      "quick review", "this proof", "this argument",
+      "合ってる", "ロジックチェック", "この証明", "この式"
+    ],
+    "/paper-deep-read": [
+      "deep read", "summarize this paper", "read this paper carefully",
+      "この論文を詳しく", "1本の論文", "PDF を読んで"
+    ],
+    "/extend-literature": [
+      "update the literature review", "add to lit review",
+      "since last review", "drill into",
+      "lit-review に追加", "サーベイを更新", "もう少し深く"
+    ]
+  }
 }

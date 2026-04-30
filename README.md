@@ -103,6 +103,15 @@ Run them in order, or jump in at any phase:
 | `/revise` | Apply review comments, log changelog |
 | `/checkpoint` | Persist current phase / next action into Zone C |
 
+### Ad-hoc skills (outside the main pipeline)
+
+| Skill | Purpose |
+|---|---|
+| `/ask-gemini` | One-shot Gemini call for quick web/PDF/image lookups; does not touch `docs/` |
+| `/ask-codex` | One-shot Codex call for quick logic/statistics/proof checks; does not touch `docs/` |
+| `/paper-deep-read` | Deep-read a single paper (URL/DOI/PDF) and persist a structured note under `docs/research/papers/<slug>.md` |
+| `/extend-literature` | Append a focused subtopic survey to the existing `lit-review.md` without rewriting it |
+
 ## Specialized agents
 
 10 agents under `.claude/agents/`. See `.claude/rules/agent-routing.md` for the routing matrix.
