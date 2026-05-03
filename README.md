@@ -69,12 +69,27 @@ cd ~/path/to/my-research-project
 bash scripts/update.sh --source ../template
 ```
 
-`scripts/update.sh` が:
-- `CLAUDE.md` の **Zone B（プロジェクト固有設定）を自動でバックアップ・復元**します。
-- `.claude/`, `.codex/`, `.gemini/`, `scripts/` を `rsync --delete` で上書きします（テンプレ側で消えたファイルはローカルからも消えます）。
-- バックアップは `.claude/logs/update-backup-<timestamp>/` に残るので、何かおかしければ参照可能。
+`scripts/update.sh` が以下を行います:
 
-更新対象は **テンプレ層のみ**（agents / skills / hooks / rules / configs / scripts）。`docs/`, `src/`, `data/`, `notebooks/`, `tests/`, `pyproject.toml` の依存などプロジェクト固有のファイルは触りません。
+- **Zone B の自動退避・復元**: `CLAUDE.md` のプロジェクト固有設定（`/init-research` の出力）を退避し、テンプレ更新後に再注入します。
+- **テンプレ層のみ上書き**: `.claude/`, `.codex/`, `.gemini/`, `scripts/` を `rsync --delete` で同期します。**ただし `.claude/logs/` は除外**されるため、CLI 呼出履歴・script レビュー・lint・debug ログ等のセッション成果物は保全されます。
+- **セルフブートストラップ**: ソース側の `update.sh` がローカルと異なる場合、自動的にローカルを置き換えて再実行します。`update.sh` 自身のバグ修正もこのフローで取り込めます。
+- **バックアップ**: 退避ファイルは repo root の `.update-backup-<timestamp>/` に残り、`CLAUDE.md.before` も含むため diff によるレビューが可能です（`.gitignore` 済み、削除しても問題ありません）。
+
+#### 保全 / 上書きの一覧
+
+| パス | 挙動 | 用途 |
+|---|---|---|
+| `docs/`, `src/`, `data/`, `tests/`, `notebooks/` | **完全に touch しない** | 研究成果物 |
+| `pyproject.toml`, `README.md`, `.gitignore`, `uv.lock` | **完全に touch しない** | プロジェクト所有 |
+| `CLAUDE.md` Zone B | **保全**（退避 → 復元） | `/init-research` の出力 |
+| `CLAUDE.md` Zone A / C | 上書き（テンプレ更新を反映） | 不変ルール / セッション context |
+| `.claude/logs/` | **保全**（rsync exclude） | CLI 呼出履歴、`/review-script` レビュー、`/lint` 結果、debug 報告 |
+| `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/rules/`, `.claude/*.json` | 上書き（rsync --delete） | テンプレ層 — 改良はテンプレ側に push する設計 |
+| `.codex/AGENTS.md`, `.gemini/GEMINI.md` | 上書き | テンプレ層 |
+| `scripts/` | 上書き（self-bootstrap 含む） | テンプレ層 |
+
+> **注意**: `.claude/agents/` 等にプロジェクト独自のカスタムファイルを直接置くと update 時に消去されます。汎用化できるならテンプレ側に PR を、プロジェクト専用にしたい場合は別ディレクトリに保管した上で update 後に手動で配置してください。
 
 更新後は念のため:
 
@@ -116,7 +131,21 @@ Run them in order, or jump in at any phase:
 
 ## Specialized agents
 
-10 agents under `.claude/agents/`. See `.claude/rules/agent-routing.md` for the routing matrix.
+11 agents under `.claude/agents/`. See `.claude/rules/agent-routing.md` for the full routing matrix.
+
+| Agent | Backed by | Best at |
+|---|---|---|
+| `literature-reviewer` | Opus + Gemini CLI | Survey, citation graph, BibTeX entry generation |
+| `gemini-explore` | Gemini CLI | Multimodal: PDFs, figures, videos, web pages |
+| `hypothesis-generator` | Opus (+ Codex critique) | From gaps to candidate hypotheses; framing contributions |
+| `methodology-designer` | Opus (+ Codex check) | Experiment design, statistical test choice, sample size |
+| `experiment-runner` | Sonnet | Writing Python, running under `uv`, capturing reproducibility metadata |
+| `data-analyst` | Opus | Statistical analysis, effect sizes, CIs, plotting |
+| `discussant` | Opus | Implications, limitations, future work |
+| `paper-writer` | Opus | IMRaD assembly, voice consistency, narrative |
+| `peer-reviewer` | Codex | Strict logical / statistical / citation review (paper draft) |
+| `script-reviewer` | Codex | Strict pre-run review of experiment / analysis scripts |
+| `codex-debugger` | Codex | Root-cause analysis of script failures |
 
 ## Requirements
 
@@ -130,17 +159,49 @@ Run them in order, or jump in at any phase:
 ## Layout
 
 ```
-.claude/        Orchestration layer (agents / skills / hooks / rules / configs)
-.codex/         Codex CLI contract
-.gemini/        Gemini CLI contract
-docs/           Research notes (English) and paper drafts
-src/            Experiment & analysis code (Python)
-data/           raw / processed / results — raw and processed are gitignored
-notebooks/      Optional Jupyter notebooks
-tests/          pytest tests for src/
-scripts/        setup.sh, update.sh
-CLAUDE.md       3-zone config (immutable rules / project / session)
+.claude/
+  agents/         11 specialized agent definitions
+  skills/         18 skills — 12 pipeline + 6 ad-hoc
+  hooks/          8 Python hooks (routing, citation guard, repro check, logging, ...)
+  rules/          7 domain rules (research-integrity, citation-rigor, ...)
+  logs/           Runtime artifacts — preserved across template updates
+    cli/          Codex / Gemini call I/O
+    review/       /review-script outputs
+    lint/         /lint outputs
+    debug/        codex-debugger reports
+    sessions.log  session-end breadcrumbs
+  settings.json
+  routing-keywords.json
+  paper-template-config.json
+.codex/AGENTS.md  Contract loaded by Codex CLI
+.gemini/GEMINI.md Contract loaded by Gemini CLI
+
+docs/
+  research/       lit-review, gaps, hypotheses, methodology, analysis, discussion (English)
+  paper/          draft.md or main.tex, review-N.md, changelog.md
+  references.bib
+
+src/
+  experiments/    Experiment scripts (Python, run via uv)
+  analysis/       Analysis scripts
+  utils/          Shared helpers including repro.py
+
+data/
+  raw/            Append-only raw inputs (gitignored)
+  processed/      Regenerated from raw via scripts (gitignored)
+  results/<run_id>/   Immutable per-run outputs with metadata.json
+
+notebooks/        Optional Jupyter
+tests/            pytest tests for src/
+scripts/
+  setup.sh        Detect uv / codex / gemini, sync deps
+  update.sh       Pull template updates with Zone B and logs preservation
+
+CLAUDE.md         3-zone config (immutable rules / project / session)
+pyproject.toml    Non-package uv project (package = false), with pytest pythonpath = src
 ```
+
+`/init-research` を実行すると `docs/`, `src/`, `data/`, `tests/`, `notebooks/` 配下のスケルトンが生成され、`src/utils/repro.py` も自動配置されます。
 
 ## Credits
 
