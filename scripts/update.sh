@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Update the orchestrator template layer (.claude/, .codex/, .gemini/) while preserving
-# Zone B of CLAUDE.md (the user's project configuration).
+# Update the orchestrator template layer (.claude/, .codex/, .gemini/, scripts/)
+# while preserving:
+#   - Zone B of CLAUDE.md  (the user's project configuration)
+#   - .claude/logs/        (runtime logs from prior sessions)
 #
-# Usage: bash scripts/update.sh [--source <path>]
-# If --source is omitted, the script assumes you have already pulled fresh template files
-# into a sibling directory and points to it interactively.
+# Usage: bash scripts/update.sh --source <path-to-fresh-template-checkout>
 
 set -euo pipefail
 
@@ -32,12 +32,19 @@ if [[ ! -d "$SOURCE/.claude" ]]; then
     err "$SOURCE does not look like a claude-research-orchestrator checkout (no .claude/)."
     exit 2
 fi
+if [[ ! -f "$SOURCE/CLAUDE.md" ]]; then
+    err "$SOURCE has no CLAUDE.md."
+    exit 2
+fi
 
-BACKUP_DIR=".claude/logs/update-backup-$(date -u +%Y%m%dT%H%M%SZ)"
+# Backup directory MUST live outside any rsync target. We use the repo root
+# with a clearly-named timestamped directory; .gitignore excludes it.
+BACKUP_DIR=".update-backup-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$BACKUP_DIR"
 
-# --- Extract Zone B from current CLAUDE.md ---------------------------
-bold "Backing up Zone B (project config)"
+# --- Extract Zone B from the current CLAUDE.md -----------------------
+bold "Backing up Zone B (project config) and CLAUDE.md"
+cp CLAUDE.md "$BACKUP_DIR/CLAUDE.md.before"
 python3 - "$BACKUP_DIR" <<'PY'
 import re, sys, pathlib
 backup = pathlib.Path(sys.argv[1])
@@ -47,14 +54,34 @@ if not m:
     raise SystemExit("ZONE_B markers not found in current CLAUDE.md")
 (backup / "ZONE_B.md").write_text(m.group(1), encoding="utf-8")
 PY
+if [[ ! -s "$BACKUP_DIR/ZONE_B.md" ]]; then
+    err "Zone B backup is empty or missing — aborting before any destructive sync."
+    exit 3
+fi
 ok "Saved Zone B to $BACKUP_DIR/ZONE_B.md"
+
+# --- Verify the source CLAUDE.md has the markers we will restore into
+python3 - "$SOURCE" <<'PY'
+import re, sys, pathlib
+src = pathlib.Path(sys.argv[1]) / "CLAUDE.md"
+text = src.read_text(encoding="utf-8")
+if "<!-- ZONE_B_BEGIN -->" not in text or "<!-- ZONE_B_END -->" not in text:
+    raise SystemExit("template CLAUDE.md is missing ZONE_B markers; refusing to overlay")
+PY
 
 # --- Overlay template ------------------------------------------------
 bold "Overlaying template from $SOURCE"
 for d in .claude .codex .gemini scripts; do
     if [[ -d "$SOURCE/$d" ]]; then
-        cp -R "$BACKUP_DIR/" "$BACKUP_DIR/" 2>/dev/null || true   # noop touch
-        rsync -a --delete "$SOURCE/$d/" "./$d/"
+        if [[ "$d" == ".claude" ]]; then
+            # Preserve runtime logs that the template never ships.
+            rsync -a --delete \
+                --exclude='logs/' \
+                --exclude='logs/**' \
+                "$SOURCE/$d/" "./$d/"
+        else
+            rsync -a --delete "$SOURCE/$d/" "./$d/"
+        fi
         ok "synced $d/"
     fi
 done
@@ -66,8 +93,13 @@ bold "Restoring Zone B"
 python3 - "$BACKUP_DIR" <<'PY'
 import re, sys, pathlib
 backup = pathlib.Path(sys.argv[1])
-zb = (backup / "ZONE_B.md").read_text(encoding="utf-8")
+zb_path = backup / "ZONE_B.md"
+if not zb_path.exists():
+    raise SystemExit(f"backup file vanished: {zb_path}")
+zb = zb_path.read_text(encoding="utf-8")
 src = pathlib.Path("CLAUDE.md").read_text(encoding="utf-8")
+if "<!-- ZONE_B_BEGIN -->" not in src or "<!-- ZONE_B_END -->" not in src:
+    raise SystemExit("post-overlay CLAUDE.md is missing ZONE_B markers; refusing to write")
 new = re.sub(
     r"(<!-- ZONE_B_BEGIN -->).*?(<!-- ZONE_B_END -->)",
     lambda m: m.group(1) + zb + m.group(2),
@@ -78,4 +110,6 @@ PY
 ok "Zone B restored from backup"
 
 echo
-ok "Update complete. Backup at $BACKUP_DIR"
+ok "Update complete."
+echo "  Backup: $BACKUP_DIR/  (safe to delete once you have verified the update)"
+echo "  Tip: diff your CLAUDE.md against $BACKUP_DIR/CLAUDE.md.before to review."

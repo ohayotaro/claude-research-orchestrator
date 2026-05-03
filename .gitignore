@@ -32,6 +32,9 @@ Thumbs.db
 # Claude Code logs
 .claude/logs/
 
+# Backups created by scripts/update.sh
+.update-backup-*/
+
 # LaTeX build artifacts
 *.aux
 *.bbl
