@@ -37,6 +37,23 @@ if [[ ! -f "$SOURCE/CLAUDE.md" ]]; then
     exit 2
 fi
 
+# --- Self-bootstrap --------------------------------------------------
+# If the source ships a newer update.sh than what we are currently
+# running, copy it in and re-execute. Without this, a bug in the local
+# update.sh can never be fixed via the update flow itself — the user
+# would have to manually copy the fixed script first. Idempotent: when
+# local matches source, this block is a no-op.
+SRC_SCRIPT="$SOURCE/scripts/update.sh"
+THIS_SCRIPT="${BASH_SOURCE[0]}"
+if [[ -f "$SRC_SCRIPT" ]] && ! cmp -s "$SRC_SCRIPT" "$THIS_SCRIPT"; then
+    bold "Self-bootstrap: source has a newer update.sh; replacing local copy and re-executing"
+    cp "$SRC_SCRIPT" "$THIS_SCRIPT"
+    chmod +x "$THIS_SCRIPT"
+    ok "scripts/update.sh updated from $SRC_SCRIPT"
+    echo
+    exec bash "$THIS_SCRIPT" --source "$SOURCE"
+fi
+
 # Backup directory MUST live outside any rsync target. We use the repo root
 # with a clearly-named timestamped directory; .gitignore excludes it.
 BACKUP_DIR=".update-backup-$(date -u +%Y%m%dT%H%M%SZ)"
