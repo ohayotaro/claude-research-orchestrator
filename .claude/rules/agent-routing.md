@@ -14,7 +14,8 @@ The orchestrator is Claude Opus. It does **not** implement; it integrates result
 | `data-analyst` | Opus | Statistical analysis, effect sizes, CIs, plotting |
 | `discussant` | Opus | Implications, limitations, future work |
 | `paper-writer` | Opus | IMRaD assembly, voice consistency, narrative |
-| `peer-reviewer` | Codex | Strict logical / statistical / citation review |
+| `peer-reviewer` | Codex | Strict logical / statistical / citation review (paper draft level) |
+| `script-reviewer` | Codex | Strict pre-run review of experiment / analysis scripts (statistics, leakage, reproducibility, numerical edge cases, test coverage) |
 | `codex-debugger` | Codex | Root-cause analysis of script failures |
 
 ## Routing triggers
@@ -32,6 +33,7 @@ The `agent-router` hook (`.claude/hooks/agent-router.py`) reads `.claude/routing
 | "limitations", "implications", "future work", "discuss" | `discussant` |
 | "paper", "draft", "introduction", "abstract", "IMRaD" | `paper-writer` |
 | "review this draft", "critique", "find flaws", "rebut" | `peer-reviewer` (delegates to Codex) |
+| "review my script", "code review", "leakage", "before running" | `script-reviewer` (delegates to Codex) |
 | "error", "exception", "stacktrace", "doesn't work", "debug" | `codex-debugger` |
 
 ## When to NOT delegate

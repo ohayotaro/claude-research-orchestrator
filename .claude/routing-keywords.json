@@ -49,6 +49,13 @@
     "debug", "broken", "fails",
     "エラー", "例外", "デバッグ"
   ],
+  "script-reviewer": [
+    "review my script", "review this script", "review the experiment code",
+    "check this analysis script", "pre-run review", "static review",
+    "code review", "data leakage", "leakage check", "check the seed",
+    "スクリプトをレビュー", "コードレビュー", "実行前にチェック",
+    "リーケージ", "再現性チェック"
+  ],
   "_skill_hints": {
     "_comment": "Suggest these skills (not agents) for ad-hoc requests outside the pipeline.",
     "/ask-gemini": [
@@ -69,6 +76,14 @@
       "update the literature review", "add to lit review",
       "since last review", "drill into",
       "lit-review に追加", "サーベイを更新", "もう少し深く"
+    ],
+    "/review-script": [
+      "before running", "before /run-experiment", "review before run",
+      "実行前のレビュー", "走らせる前に", "/run-experiment の前に"
+    ],
+    "/lint": [
+      "lint", "ruff", "mypy", "pytest", "type check", "format check",
+      "リント", "型チェック", "フォーマット確認"
     ]
   }
 }

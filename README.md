@@ -111,6 +111,8 @@ Run them in order, or jump in at any phase:
 | `/ask-codex` | One-shot Codex call for quick logic/statistics/proof checks; does not touch `docs/` |
 | `/paper-deep-read` | Deep-read a single paper (URL/DOI/PDF) and persist a structured note under `docs/research/papers/<slug>.md` |
 | `/extend-literature` | Append a focused subtopic survey to the existing `lit-review.md` without rewriting it |
+| `/review-script` | Codex-backed pre-run review of an experiment / analysis script (statistics, leakage, reproducibility, numerical, test coverage) |
+| `/lint` | Run ruff + mypy + pytest on the project (or a path) and present a tidy summary |
 
 ## Specialized agents
 

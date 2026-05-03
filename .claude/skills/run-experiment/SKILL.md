@@ -20,6 +20,7 @@ next_skill: /analyze-results
    - Methodology locked (`methodology.md` exists; user-approved).
    - Working tree clean (`git status` empty) — strongly preferred. If dirty, warn the user; the run will be marked `git_clean: false`.
    - `uv` available.
+   - **Script review status**: if the target script under `src/experiments/` exists and was modified more recently than the latest `.claude/logs/review/<slug>-*.md` (or no review exists), suggest `/review-script <path>` first. Do not auto-run it — the user decides. If a review exists with `verdict: reject` or unaddressed blockers, warn strongly before proceeding.
 2. **Launch** `experiment-runner` with:
    - Pointer to `methodology.md`.
    - Suggested script name (slug from hypothesis label).
