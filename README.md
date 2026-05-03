@@ -167,8 +167,11 @@ Run them in order, or jump in at any phase:
   hooks/          8 Python hooks (routing, citation guard, repro check, logging, ...)
   rules/          7 domain rules (research-integrity, citation-rigor, ...)
   templates/      Starter scripts copied into src/utils/ on /init-research
-    repro.py      Reproducibility metadata helper
-    viz.py        Publication-quality matplotlib styling + Okabe-Ito palette
+    README.md     Structure, design principles, how to add another language
+    python/       Python recipes (default — uv-managed)
+      repro.py    Reproducibility metadata helper
+      viz.py      Publication-quality matplotlib styling + Okabe-Ito palette
+    # r/, julia/, etc. — placeholders for future expansion
   logs/           Runtime artifacts — preserved across template updates
     cli/          Codex / Gemini call I/O
     review/       /review-script outputs

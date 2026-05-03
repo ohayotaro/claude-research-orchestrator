@@ -109,13 +109,19 @@ def _base_rcparams(palette: list[str]) -> dict:
 def apply_publication_style(palette: list[str] | None = None) -> None:
     """Apply small-but-clean styling suitable for journal figures.
 
-    Use serif body fonts to match LaTeX papers. Font sizes are intentionally
-    small because journal figures are reproduced at the size you save them.
+    Uses the generic ``serif`` family with a long fallback chain so the
+    figure renders predictably across macOS / Linux / Windows. Font sizes
+    are intentionally small because journal figures are reproduced at the
+    size you save them. To customize, edit this file or override
+    ``mpl.rcParams`` after calling this function.
     """
     rc = _base_rcparams(palette or OKABE_ITO_CYCLE)
     rc.update({
         "font.family": "serif",
-        "font.serif": ["Times New Roman", "Times", "DejaVu Serif", "serif"],
+        "font.serif": [
+            "DejaVu Serif", "Liberation Serif", "Nimbus Roman",
+            "Times New Roman", "Times", "serif",
+        ],
         "font.size": 8.5,
         "axes.titlesize": 9,
         "axes.labelsize": 8.5,
@@ -133,7 +139,9 @@ def apply_presentation_style(palette: list[str] | None = None) -> None:
     rc = _base_rcparams(palette or OKABE_ITO_CYCLE)
     rc.update({
         "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica", "Arial", "DejaVu Sans", "sans-serif"],
+        "font.sans-serif": [
+            "DejaVu Sans", "Liberation Sans", "Helvetica", "Arial", "sans-serif",
+        ],
         "font.size": 14,
         "axes.titlesize": 16,
         "axes.labelsize": 14,

@@ -146,7 +146,10 @@ Report to the orchestrator:
 - **Do not edit `src/` or the figure files.** You return critique only.
 - **Verify Gemini's verdict** against the caption sidecar and methodology section when possible. Vision models can misread axis labels.
 - If `gemini` CLI is unavailable, fail loudly and report — Claude alone cannot reliably critique a rendered figure without seeing it.
-- The default styling encoded in `src/utils/viz.py` should generally produce
-  clean output. If a review keeps flagging the same spine/typography issues
-  across figures, recommend the user verify `apply_publication_style()` is
-  actually being called.
+- For Python projects, the default styling encoded in `src/utils/viz.py`
+  (copied from `.claude/templates/python/viz.py` on `/init-research`) should
+  generally produce clean output. If a review keeps flagging the same spine
+  or typography issues across figures, recommend the user verify
+  `apply_publication_style()` is actually being called. For non-Python
+  projects, point to the equivalent helper under the project's runtime
+  recipe.

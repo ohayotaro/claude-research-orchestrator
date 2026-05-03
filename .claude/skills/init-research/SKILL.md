@@ -54,8 +54,9 @@ Initializes a research project from the orchestrator template. The orchestrator 
    - If `paper_format == markdown_bibtex`: `docs/paper/draft.md` with the front matter from `paper-writer` agent's contract.
    - If `paper_format == latex`: `docs/paper/main.tex` with a minimal article preamble + `\bibliography{../references}`.
    - `src/experiments/__init__.py`, `src/analysis/__init__.py`, `src/utils/__init__.py` (empty).
-   - `src/utils/repro.py` — copy verbatim from `.claude/templates/repro.py`. Reproducibility helper used by every experiment script.
-   - `src/utils/viz.py` — copy verbatim from `.claude/templates/viz.py`. Publication / presentation matplotlib styling and palette helpers (`apply_publication_style`, `apply_presentation_style`, `save_figure`, `OKABE_ITO`).
+   - **Language-scoped starter scripts**: read Zone B `runtime.language` (default `python`) and copy from `.claude/templates/<language>/` to `src/utils/`:
+     - For `python`: `repro.py` (reproducibility metadata helper) and `viz.py` (publication-quality matplotlib styling, Okabe-Ito palette, `save_figure`).
+     - If `.claude/templates/<language>/` does not exist, fall back to `python/` and warn the user that the orchestrator does not ship native recipes for `<language>` yet (R / Julia / Stata are placeholders for future expansion).
    - `tests/test_smoke.py` — imports each src module to check the package is wired.
    - `data/raw/.gitkeep`, `data/processed/.gitkeep`, `data/results/.gitkeep`, `notebooks/.gitkeep`.
 7. **Write `.claude/paper-template-config.json`** with `{"paper_format": "...", "target_venue": "..."}`.
@@ -76,15 +77,18 @@ Initializes a research project from the orchestrator template. The orchestrator 
 
 ## Source of starter scripts
 
-`src/utils/repro.py` and `src/utils/viz.py` are copied verbatim from
-`.claude/templates/`. The orchestrator template tracks them as real Python
-files under `.claude/templates/` so they can be linted and tested in the
-template repo without having to maintain inline copies in this SKILL.md.
+Starter scripts live under `.claude/templates/<language>/` and are copied
+verbatim. The template repo tracks them as real source files so they can be
+linted and tested without inline copies in this SKILL.md. See
+`.claude/templates/README.md` for the full structure and the contract for
+adding a new language.
+
+For `runtime.language: python`:
 
 | Copy from | Copy to |
 |---|---|
-| `.claude/templates/repro.py` | `src/utils/repro.py` |
-| `.claude/templates/viz.py`   | `src/utils/viz.py` |
+| `.claude/templates/python/repro.py` | `src/utils/repro.py` |
+| `.claude/templates/python/viz.py`   | `src/utils/viz.py` |
 
-If these template files are absent (e.g. an old-template install), fall back
-to fetching from the upstream repo at the same paths and warn the user.
+For other languages, look for `.claude/templates/<language>/`. If it does
+not exist, fall back to the python recipe and warn the user.
