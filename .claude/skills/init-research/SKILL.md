@@ -54,7 +54,8 @@ Initializes a research project from the orchestrator template. The orchestrator 
    - If `paper_format == markdown_bibtex`: `docs/paper/draft.md` with the front matter from `paper-writer` agent's contract.
    - If `paper_format == latex`: `docs/paper/main.tex` with a minimal article preamble + `\bibliography{../references}`.
    - `src/experiments/__init__.py`, `src/analysis/__init__.py`, `src/utils/__init__.py` (empty).
-   - `src/utils/repro.py` — reproducibility helper from the template snippet at the bottom of this SKILL.md.
+   - `src/utils/repro.py` — copy verbatim from `.claude/templates/repro.py`. Reproducibility helper used by every experiment script.
+   - `src/utils/viz.py` — copy verbatim from `.claude/templates/viz.py`. Publication / presentation matplotlib styling and palette helpers (`apply_publication_style`, `apply_presentation_style`, `save_figure`, `OKABE_ITO`).
    - `tests/test_smoke.py` — imports each src module to check the package is wired.
    - `data/raw/.gitkeep`, `data/processed/.gitkeep`, `data/results/.gitkeep`, `notebooks/.gitkeep`.
 7. **Write `.claude/paper-template-config.json`** with `{"paper_format": "...", "target_venue": "..."}`.
@@ -73,100 +74,17 @@ Initializes a research project from the orchestrator template. The orchestrator 
 - Do not change Zone A.
 - The `git_clean` check in any later experiment requires this repo to be a git repo. After scaffold, suggest `git init && git add -A && git commit -m "init research scaffold"` — but do not run it without user confirmation.
 
-## Template snippet — `src/utils/repro.py`
+## Source of starter scripts
 
-```python
-"""Reproducibility helpers used by every experiment script."""
+`src/utils/repro.py` and `src/utils/viz.py` are copied verbatim from
+`.claude/templates/`. The orchestrator template tracks them as real Python
+files under `.claude/templates/` so they can be linted and tested in the
+template repo without having to maintain inline copies in this SKILL.md.
 
-from __future__ import annotations
+| Copy from | Copy to |
+|---|---|
+| `.claude/templates/repro.py` | `src/utils/repro.py` |
+| `.claude/templates/viz.py`   | `src/utils/viz.py` |
 
-import hashlib
-import importlib.metadata
-import json
-import os
-import platform
-import random
-import subprocess
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any
-
-
-def _git_rev() -> tuple[str, bool]:
-    try:
-        rev = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
-        ).decode().strip()
-        dirty = bool(subprocess.check_output(
-            ["git", "status", "--porcelain"], stderr=subprocess.DEVNULL
-        ).decode().strip())
-        return rev + ("-dirty" if dirty else ""), not dirty
-    except Exception:
-        return "no-git", False
-
-
-def _package_versions(packages: list[str]) -> dict[str, str]:
-    out: dict[str, str] = {}
-    for p in packages:
-        try:
-            out[p] = importlib.metadata.version(p)
-        except importlib.metadata.PackageNotFoundError:
-            out[p] = "not-installed"
-    return out
-
-
-def make_run_id(args: dict[str, Any]) -> str:
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
-    h = hashlib.sha1(json.dumps(args, sort_keys=True, default=str).encode()).hexdigest()[:8]
-    return f"{ts}_{h}"
-
-
-def set_seed(seed: int) -> None:
-    random.seed(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    try:
-        import numpy as np
-        np.random.seed(seed)
-    except ImportError:
-        pass
-    # Add framework-specific seeding here (torch, jax, tf) if installed.
-
-
-def write_metadata(
-    run_dir: Path,
-    *,
-    script: str,
-    args: dict[str, Any],
-    seed: int,
-    started_at: str,
-    finished_at: str | None = None,
-    extra: dict[str, Any] | None = None,
-    tracked_packages: list[str] | None = None,
-) -> Path:
-    rev, clean = _git_rev()
-    md = {
-        "run_id": run_dir.name,
-        "started_at": started_at,
-        "finished_at": finished_at,
-        "script": script,
-        "args": args,
-        "seed": seed,
-        "git_rev": rev,
-        "git_clean": clean,
-        "python_version": sys.version.split()[0],
-        "platform": platform.platform(),
-        "package_versions": _package_versions(
-            tracked_packages or ["numpy", "scipy", "pandas", "matplotlib", "statsmodels"]
-        ),
-        "hardware": {
-            "cpu_count": os.cpu_count(),
-        },
-    }
-    if extra:
-        md.update(extra)
-    run_dir.mkdir(parents=True, exist_ok=True)
-    p = run_dir / "metadata.json"
-    p.write_text(json.dumps(md, indent=2, default=str), encoding="utf-8")
-    return p
-```
+If these template files are absent (e.g. an old-template install), fall back
+to fetching from the upstream repo at the same paths and warn the user.

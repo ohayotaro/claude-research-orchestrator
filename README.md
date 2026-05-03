@@ -128,10 +128,11 @@ Run them in order, or jump in at any phase:
 | `/extend-literature` | Append a focused subtopic survey to the existing `lit-review.md` without rewriting it |
 | `/review-script` | Codex-backed pre-run review of an experiment / analysis script (statistics, leakage, reproducibility, numerical, test coverage) |
 | `/lint` | Run ruff + mypy + pytest on the project (or a path) and present a tidy summary |
+| `/review-figures` | Gemini-backed multimodal review of rendered figures under `data/results/<run_id>/figures/` (chart choice, color, typography, accessibility, data honesty) |
 
 ## Specialized agents
 
-11 agents under `.claude/agents/`. See `.claude/rules/agent-routing.md` for the full routing matrix.
+12 agents under `.claude/agents/`. See `.claude/rules/agent-routing.md` for the full routing matrix.
 
 | Agent | Backed by | Best at |
 |---|---|---|
@@ -140,11 +141,12 @@ Run them in order, or jump in at any phase:
 | `hypothesis-generator` | Opus (+ Codex critique) | From gaps to candidate hypotheses; framing contributions |
 | `methodology-designer` | Opus (+ Codex check) | Experiment design, statistical test choice, sample size |
 | `experiment-runner` | Sonnet | Writing Python, running under `uv`, capturing reproducibility metadata |
-| `data-analyst` | Opus | Statistical analysis, effect sizes, CIs, plotting |
+| `data-analyst` | Opus | Statistical analysis, effect sizes, CIs, plotting (uses `src/utils/viz.py`) |
 | `discussant` | Opus | Implications, limitations, future work |
 | `paper-writer` | Opus | IMRaD assembly, voice consistency, narrative |
 | `peer-reviewer` | Codex | Strict logical / statistical / citation review (paper draft) |
 | `script-reviewer` | Codex | Strict pre-run review of experiment / analysis scripts |
+| `viz-reviewer` | Gemini | Multimodal review of rendered figures (chart choice, color, typography, accessibility, data honesty) |
 | `codex-debugger` | Codex | Root-cause analysis of script failures |
 
 ## Requirements
@@ -160,10 +162,13 @@ Run them in order, or jump in at any phase:
 
 ```
 .claude/
-  agents/         11 specialized agent definitions
-  skills/         18 skills — 12 pipeline + 6 ad-hoc
+  agents/         12 specialized agent definitions
+  skills/         19 skills — 12 pipeline + 7 ad-hoc
   hooks/          8 Python hooks (routing, citation guard, repro check, logging, ...)
   rules/          7 domain rules (research-integrity, citation-rigor, ...)
+  templates/      Starter scripts copied into src/utils/ on /init-research
+    repro.py      Reproducibility metadata helper
+    viz.py        Publication-quality matplotlib styling + Okabe-Ito palette
   logs/           Runtime artifacts — preserved across template updates
     cli/          Codex / Gemini call I/O
     review/       /review-script outputs
@@ -183,8 +188,8 @@ docs/
 
 src/
   experiments/    Experiment scripts (Python, run via uv)
-  analysis/       Analysis scripts
-  utils/          Shared helpers including repro.py
+  analysis/       Analysis scripts (use src/utils/viz.py for styling)
+  utils/          Shared helpers — repro.py and viz.py
 
 data/
   raw/            Append-only raw inputs (gitignored)
