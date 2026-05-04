@@ -77,6 +77,11 @@ target_venue: null              # e.g. "NeurIPS 2026" / "Nature Communications"
 ethics:
   irb_required: false
   data_sensitivity: none        # none | low | medium | high
+viz_preferences:
+  default_profile: default      # default | publication | presentation | <custom>
+  # User can add custom profiles in src/utils/viz.py STYLE_PROFILES.
+  # data-analyst reads default_profile and calls apply_style(default_profile).
+  # Per-figure overrides are still possible via apply_style(name=..., **kwargs).
 ```
 
 ### Notes for the orchestrator

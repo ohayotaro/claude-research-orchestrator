@@ -49,16 +49,18 @@ Make 2–6 figures. Each figure:
 - Uses colorblind-safe palettes (`viridis`, Okabe–Ito, or matplotlib defaults except red-green).
 - Saved as both `.png` (300 dpi) and `.pdf` under `data/results/<run_id>/figures/`.
 
-**Use `src/utils/viz.py` for styling.** It exposes `apply_publication_style()`,
-`apply_presentation_style()`, the `OKABE_ITO` palette dict, and a
-`save_figure(fig, path_without_ext, caption=...)` helper that writes both PDF
-and PNG and emits a `<name>.caption.txt` sidecar for downstream tooling.
-Default to `apply_publication_style()` unless the user explicitly asks for
-slide-ready figures.
+**Use `src/utils/viz.py` for styling.** It exposes the `apply_style()` entry
+point (which respects the user's profile preference from `CLAUDE.md` Zone B
+`viz_preferences.default_profile`), the `OKABE_ITO` palette dict, the
+`STYLE_PROFILES` registry, and `save_figure(fig, path_without_ext, caption=...)`
+which writes both PDF and PNG and emits a `<name>.caption.txt` sidecar for
+downstream tooling.
+
+Default invocation — let the user's Zone B preference decide:
 
 ```python
-from utils.viz import apply_publication_style, save_figure, OKABE_ITO
-apply_publication_style()
+from utils.viz import apply_style, save_figure, OKABE_ITO
+apply_style()  # resolves to Zone B viz_preferences.default_profile or "default"
 fig, ax = plt.subplots(figsize=(3.5, 2.5))
 ax.plot(xs, ys, color=OKABE_ITO["blue"])
 ax.set(xlabel="time (s)", ylabel="response (a.u.)")
@@ -66,10 +68,17 @@ save_figure(fig, run_dir / "figures" / "fig1",
             caption="Mean response over time. Shaded band = 95% CI; n = 24.")
 ```
 
+If a specific figure benefits from a non-default profile (e.g., the user is
+generating a slide-ready version alongside the paper figure), pass the name
+explicitly: `apply_style("presentation")`. For one-off rcParam overrides:
+`apply_style("publication", **{"font.size": 10})`.
+
 After all figures are saved, **suggest `/review-figures <run_id>`** to the
 orchestrator. The `viz-reviewer` agent (Gemini-backed) will critique chart
 choice, color, typography, composition, accessibility, and data honesty
-before the figures land in the paper draft.
+on the rendered output — regardless of which profile was applied. The
+template intentionally leaves most aesthetic choices to you and to the
+reviewer feedback loop, rather than enforcing a single house style.
 
 ### 4. Exploratory analysis
 

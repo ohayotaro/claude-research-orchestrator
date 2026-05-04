@@ -36,6 +36,7 @@ Initializes a research project from the orchestrator template. The orchestrator 
    - 想定投稿先（target_venue）— optional.
    - データ機微度（ethics.data_sensitivity）— none / low / medium / high.
    - IRB必要か（ethics.irb_required）— bool.
+   - 図表スタイルのデフォルト（viz_preferences.default_profile）— `default` / `publication` / `presentation`. After init, the user can add custom profiles by editing `src/utils/viz.py` `STYLE_PROFILES` and switch by editing this Zone B field. The viz-reviewer agent critiques rendered figures regardless of which profile is chosen.
 3. **Build a Zone B YAML** from the answers. Preserve the user's free-text RQ verbatim (Japanese OK in Zone B). Keep `status: initialized`.
 4. **Write Zone B** by replacing the content between `<!-- ZONE_B_BEGIN -->` and `<!-- ZONE_B_END -->` in `CLAUDE.md`. Do not touch Zone A or Zone C.
 5. **Scaffold directories** (idempotent):

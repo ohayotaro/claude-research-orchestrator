@@ -29,10 +29,13 @@ support more than just Python.
 
 ## Design principles for templates
 
+- **Adapt to user preference, do not impose taste.** Where the template ships defaults, structure them so the user can express preferences declaratively (named profiles in `STYLE_PROFILES`, a Zone B field in `CLAUDE.md`) rather than having to monkey-patch generated code.
+- **Three-layer structure**: (1) infrastructure that the rendered figure cannot reveal — e.g. `pdf.fonttype = 42` so vector text remains editable; (2) named profiles as starting points; (3) per-call kwarg overrides. Each layer is overridable from the layer above.
+- **Reviewer-aware enforcement.** The orchestrator critiques rendered figures via `viz-reviewer` (Gemini-backed). Things the reviewer can catch on the rendered output (font choice, colors, spine policy, composition) are treated as preference, not enforcement. Things the reviewer cannot catch (PDF text editability, multi-format save, untitled figures) are enforced.
 - **Frameworks-of-the-language, not third-party stacks.** Python recipes use stdlib + matplotlib + numpy because those are in `pyproject.toml`. Avoid pulling in opinionated third-party stacks (Plotly, Polars, etc.) that the user may not want.
 - **Generic fallback chains.** Don't pin OS-specific resources. Example: font families use `["DejaVu Serif", "Liberation Serif", ..., "serif"]` rather than hardcoding `Times New Roman` first.
-- **Discipline checks, not aesthetic prescriptions.** Where the template enforces something, it should be a research-rigor concern (e.g. "figure has no title and no caption argument" → raise) rather than a style opinion.
-- **Editable after copy.** Once copied, the file under `src/utils/` (or `R/utils/` etc.) belongs to the user's project. Project-specific edits live there. The template file under `.claude/templates/` stays generic.
+- **Discipline checks, not aesthetic prescriptions.** Where the template raises an error, it should be a research-rigor concern (e.g. "figure has no title and no caption argument" → raise) rather than a style opinion.
+- **Editable after copy.** Once copied, the file under `src/utils/` (or `R/utils/` etc.) belongs to the user's project. Project-specific edits — including new profiles — live there. The template file under `.claude/templates/` stays generic.
 
 ## Adding a new language
 

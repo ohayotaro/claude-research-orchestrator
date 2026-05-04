@@ -170,7 +170,9 @@ Run them in order, or jump in at any phase:
     README.md     Structure, design principles, how to add another language
     python/       Python recipes (default — uv-managed)
       repro.py    Reproducibility metadata helper
-      viz.py      Publication-quality matplotlib styling + Okabe-Ito palette
+      viz.py      Visualization helpers — Okabe-Ito palette, save_figure(),
+                  STYLE_PROFILES (default / publication / presentation),
+                  apply_style() that reads viz_preferences from Zone B
     # r/, julia/, etc. — placeholders for future expansion
   logs/           Runtime artifacts — preserved across template updates
     cli/          Codex / Gemini call I/O
