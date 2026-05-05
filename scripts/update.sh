@@ -2,6 +2,7 @@
 # Update the orchestrator template layer (.claude/, .codex/, .gemini/, scripts/)
 # while preserving:
 #   - Zone B of CLAUDE.md  (the user's project configuration)
+#   - Zone C of CLAUDE.md  (the user's session progress / next-action state)
 #   - .claude/logs/        (runtime logs from prior sessions)
 #
 # Usage: bash scripts/update.sh --source <path-to-fresh-template-checkout>
@@ -59,31 +60,47 @@ fi
 BACKUP_DIR=".update-backup-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$BACKUP_DIR"
 
-# --- Extract Zone B from the current CLAUDE.md -----------------------
-bold "Backing up Zone B (project config) and CLAUDE.md"
+# --- Extract Zone B and Zone C from the current CLAUDE.md ------------
+bold "Backing up Zone B (project config), Zone C (session state), and CLAUDE.md"
 cp CLAUDE.md "$BACKUP_DIR/CLAUDE.md.before"
 python3 - "$BACKUP_DIR" <<'PY'
 import re, sys, pathlib
 backup = pathlib.Path(sys.argv[1])
 src = pathlib.Path("CLAUDE.md").read_text(encoding="utf-8")
-m = re.search(r"<!-- ZONE_B_BEGIN -->(.*?)<!-- ZONE_B_END -->", src, re.DOTALL)
-if not m:
+
+mb = re.search(r"<!-- ZONE_B_BEGIN -->(.*?)<!-- ZONE_B_END -->", src, re.DOTALL)
+if not mb:
     raise SystemExit("ZONE_B markers not found in current CLAUDE.md")
-(backup / "ZONE_B.md").write_text(m.group(1), encoding="utf-8")
+(backup / "ZONE_B.md").write_text(mb.group(1), encoding="utf-8")
+
+mc = re.search(r"<!-- ZONE_C_BEGIN -->(.*?)<!-- ZONE_C_END -->", src, re.DOTALL)
+# Zone C may be absent in very old templates; warn but do not fail.
+if mc:
+    (backup / "ZONE_C.md").write_text(mc.group(1), encoding="utf-8")
+else:
+    print("warn: ZONE_C markers not found in current CLAUDE.md; skipping Zone C backup")
 PY
 if [[ ! -s "$BACKUP_DIR/ZONE_B.md" ]]; then
     err "Zone B backup is empty or missing — aborting before any destructive sync."
     exit 3
 fi
 ok "Saved Zone B to $BACKUP_DIR/ZONE_B.md"
+if [[ -s "$BACKUP_DIR/ZONE_C.md" ]]; then
+    ok "Saved Zone C to $BACKUP_DIR/ZONE_C.md"
+else
+    warn "Zone C not backed up (markers missing in current CLAUDE.md)."
+fi
 
 # --- Verify the source CLAUDE.md has the markers we will restore into
 python3 - "$SOURCE" <<'PY'
 import re, sys, pathlib
 src = pathlib.Path(sys.argv[1]) / "CLAUDE.md"
 text = src.read_text(encoding="utf-8")
-if "<!-- ZONE_B_BEGIN -->" not in text or "<!-- ZONE_B_END -->" not in text:
-    raise SystemExit("template CLAUDE.md is missing ZONE_B markers; refusing to overlay")
+required = ["<!-- ZONE_B_BEGIN -->", "<!-- ZONE_B_END -->",
+            "<!-- ZONE_C_BEGIN -->", "<!-- ZONE_C_END -->"]
+missing = [m for m in required if m not in text]
+if missing:
+    raise SystemExit(f"template CLAUDE.md is missing markers {missing}; refusing to overlay")
 PY
 
 # --- Overlay template ------------------------------------------------
@@ -103,28 +120,47 @@ for d in .claude .codex .gemini scripts; do
     fi
 done
 cp "$SOURCE/CLAUDE.md" CLAUDE.md
-ok "replaced CLAUDE.md (Zone B will be restored)"
+ok "replaced CLAUDE.md (Zone B and Zone C will be restored)"
 
-# --- Restore Zone B --------------------------------------------------
-bold "Restoring Zone B"
+# --- Restore Zone B and Zone C ---------------------------------------
+bold "Restoring Zone B and Zone C"
 python3 - "$BACKUP_DIR" <<'PY'
 import re, sys, pathlib
 backup = pathlib.Path(sys.argv[1])
+
 zb_path = backup / "ZONE_B.md"
 if not zb_path.exists():
     raise SystemExit(f"backup file vanished: {zb_path}")
 zb = zb_path.read_text(encoding="utf-8")
+
+zc_path = backup / "ZONE_C.md"
+zc = zc_path.read_text(encoding="utf-8") if zc_path.exists() else None
+
 src = pathlib.Path("CLAUDE.md").read_text(encoding="utf-8")
-if "<!-- ZONE_B_BEGIN -->" not in src or "<!-- ZONE_B_END -->" not in src:
-    raise SystemExit("post-overlay CLAUDE.md is missing ZONE_B markers; refusing to write")
-new = re.sub(
+for marker in ("<!-- ZONE_B_BEGIN -->", "<!-- ZONE_B_END -->",
+               "<!-- ZONE_C_BEGIN -->", "<!-- ZONE_C_END -->"):
+    if marker not in src:
+        raise SystemExit(f"post-overlay CLAUDE.md is missing {marker}; refusing to write")
+
+src = re.sub(
     r"(<!-- ZONE_B_BEGIN -->).*?(<!-- ZONE_B_END -->)",
     lambda m: m.group(1) + zb + m.group(2),
     src, count=1, flags=re.DOTALL,
 )
-pathlib.Path("CLAUDE.md").write_text(new, encoding="utf-8")
+if zc is not None:
+    src = re.sub(
+        r"(<!-- ZONE_C_BEGIN -->).*?(<!-- ZONE_C_END -->)",
+        lambda m: m.group(1) + zc + m.group(2),
+        src, count=1, flags=re.DOTALL,
+    )
+pathlib.Path("CLAUDE.md").write_text(src, encoding="utf-8")
 PY
 ok "Zone B restored from backup"
+if [[ -s "$BACKUP_DIR/ZONE_C.md" ]]; then
+    ok "Zone C restored from backup"
+else
+    warn "Zone C left at template default (no backup was available)."
+fi
 
 echo
 ok "Update complete."

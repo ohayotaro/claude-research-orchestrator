@@ -71,7 +71,7 @@ bash scripts/update.sh --source ../template
 
 `scripts/update.sh` が以下を行います:
 
-- **Zone B の自動退避・復元**: `CLAUDE.md` のプロジェクト固有設定（`/init-research` の出力）を退避し、テンプレ更新後に再注入します。
+- **Zone B / Zone C の自動退避・復元**: `CLAUDE.md` のプロジェクト固有設定（Zone B、`/init-research` の出力）と進捗状態（Zone C、`/checkpoint` の蓄積）を退避し、テンプレ更新後に再注入します。
 - **テンプレ層のみ上書き**: `.claude/`, `.codex/`, `.gemini/`, `scripts/` を `rsync --delete` で同期します。**ただし `.claude/logs/` は除外**されるため、CLI 呼出履歴・script レビュー・lint・debug ログ等のセッション成果物は保全されます。
 - **セルフブートストラップ**: ソース側の `update.sh` がローカルと異なる場合、自動的にローカルを置き換えて再実行します。`update.sh` 自身のバグ修正もこのフローで取り込めます。
 - **バックアップ**: 退避ファイルは repo root の `.update-backup-<timestamp>/` に残り、`CLAUDE.md.before` も含むため diff によるレビューが可能です（`.gitignore` 済み、削除しても問題ありません）。
@@ -82,8 +82,9 @@ bash scripts/update.sh --source ../template
 |---|---|---|
 | `docs/`, `src/`, `data/`, `tests/`, `notebooks/` | **完全に touch しない** | 研究成果物 |
 | `pyproject.toml`, `README.md`, `.gitignore`, `uv.lock` | **完全に touch しない** | プロジェクト所有 |
-| `CLAUDE.md` Zone B | **保全**（退避 → 復元） | `/init-research` の出力 |
-| `CLAUDE.md` Zone A / C | 上書き（テンプレ更新を反映） | 不変ルール / セッション context |
+| `CLAUDE.md` Zone B | **保全**（退避 → 復元） | `/init-research` の出力（分野・テーマ・RQ・viz_preferences 等） |
+| `CLAUDE.md` Zone C | **保全**（退避 → 復元） | `/checkpoint` で蓄積されたセッション進捗（current_phase, last_run_id, next_action 等） |
+| `CLAUDE.md` Zone A | 上書き（テンプレ更新を反映） | 不変ルール（テンプレ層） |
 | `.claude/logs/` | **保全**（rsync exclude） | CLI 呼出履歴、`/review-script` レビュー、`/lint` 結果、debug 報告 |
 | `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/rules/`, `.claude/*.json` | 上書き（rsync --delete） | テンプレ層 — 改良はテンプレ側に push する設計 |
 | `.codex/AGENTS.md`, `.gemini/GEMINI.md` | 上書き | テンプレ層 |
